@@ -2,11 +2,11 @@ from graphviz import Digraph
 import xml.etree.ElementTree as ET
 import pandas as pd
 import pydot
+import os
 
-## -- Internal functions
-#-----------------------
+## -- Internal functions -- #
 
-# -- Functions for the creation of graphical objects
+# -- Functions for the creation of graphical objects -- #
 def initialise_graph():
   dot = Digraph(comment="Business Process Model")
   dot.attr('graph', rankdir = "LR")
@@ -63,8 +63,7 @@ def loop_level_tree(tree, dot, connector):
 
   return dot
 
-## -- Main functions
-#-------------------
+## -- Main functions -- ##
 
 def xml2model(xml, png = False):
     process = """<?xml version="1.0"?> <data> """ + xml + " </data>"
@@ -85,7 +84,7 @@ def xml2model(xml, png = False):
     dot = create_end(dot, connector)
 
     if png:
-        dot.render(filename='process_model.dot')
+        dot[0].render(filename='process_model.dot')
         (graph,) = pydot.graph_from_dot_file('process_model.dot')
         graph.write_png('process_model.png')
         os.remove("process_model.dot")

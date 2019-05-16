@@ -1,49 +1,35 @@
-from tensorflow.contrib import predictor
-import os, sys
 import urllib.request
+from tensorflow.contrib import predictor
+import tensorflow as tf
+import os, sys
+import requests, zipfile, io
 import pandas as pd
-from flair.models import TextClassifier
-from flair.data import Sentence
-
-def determine_path ():
-    try:
-        root = __file__
-        if os.path.islink (root):
-            root = os.path.realpath (root)
-        return os.path.dirname (os.path.abspath (root))
-    except:
-        print ("I'm sorry, but something is wrong.")
-        print ("There is no __file__ variable. Please contact the author.")
-        sys.exit ()
-
-def check_models_in_package ():
-    print ("module is running")
-    print (determine_path ())
-    print ("My various models are:")
-    files = [f for f in os.listdir(determine_path () + "/models")]
-    print (files)
 
 def download_model():
-    url = "https://www.dropbox.com/s/g05auc93ysdsdl7/best-model.pt?dl=1"  # dl=1 is important
-    u = urllib.request.urlopen(url)
-    data = u.read()
-    u.close()
-    with open("best-model.pt", "wb") as f :
-        f.write(data)
+    url = "https://www.dropbox.com/s/iy3oxx4eq7107s7/USE_bis.zip?dl=1"
+    r = requests.get(url)
+    z = zipfile.ZipFile(io.BytesIO(r.content))
+    z.extractall()
 
-def get_classifier():
-    download_model()
-    classifier = TextClassifier.load_from_file("best-model.pt")
+def get_model():
+    classifier = predictor.from_saved_model("USE_bis")
     return classifier
 
-classifier = get_classifier()
-def contains_activity(clause, classifier = classifier) :
-    sentence = Sentence(clause)
-    classifier.predict(sentence)
-    if str(sentence.labels[0])[0] == "0":
-        return False
-    else:
-        return True
+download_model()
+classifier = get_model()
+
+def contains_activity(clause, classifier = classifier):
+  content_tf_list = tf.train.BytesList(value=[clause.encode('utf-8')])
+  clause = tf.train.Feature(bytes_list=content_tf_list)
+  clause_dict = {'clause': clause}
+  features = tf.train.Features(feature=clause_dict)
+  example = tf.train.Example(features=features)
+  serialized_example = example.SerializeToString()
+  output_dict = classifier({'inputs': [serialized_example]})
+  if output_dict['scores'][0][0] > 0.5 :
+    return False
+  else :
+    return True
 
 def contains_activity_list(clauses, classifier = classifier):
     labels = []

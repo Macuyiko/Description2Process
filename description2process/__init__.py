@@ -1,3 +1,14 @@
+import tensorflow as tf
+
+# We need to enable eager execution for inference at the end of this notebook.
+tfe = tf.contrib.eager
+tfe.enable_eager_execution()
+
+TFVERSION='1.13'
+import os
+os.environ['TFVERSION'] = TFVERSION
+
+
 # Import library
 from description2process import data_generation
 from description2process import contraction_expansion
@@ -8,6 +19,7 @@ from description2process import activity_extraction
 from description2process import structured_description
 from description2process import xml_model
 from description2process import visualization
+from description2process import evaluation
 
 # Returns the visualisation of a process description
 # INPUT: process description in string format
